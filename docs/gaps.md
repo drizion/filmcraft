@@ -34,6 +34,7 @@ platforms** G4, G9, G17; **performance** G16; **ecosystem** G11; **measurement**
 | G18 | Effects depth: approximations and missing behaviour | feature | no | 60–110 h |
 | G19 | Speech to text off in release builds | feature, AI | no | 5–10 h |
 | G20 | The web app shell | platforms | no | 40–80 h |
+| G21 | Mobile (Android first, iOS open): touch UI, device storage, audio, hardware decode | platforms | partly | 260–460 h |
 
 ## G1. Nothing compares our output with Premiere's
 
@@ -308,6 +309,15 @@ platforms** G4, G9, G17; **performance** G16; **ecosystem** G11; **measurement**
 - **Missing:** file access, WebCodecs decode, audio in the browser build beyond what exists;
   image-sequence export downloads drop frames in Chrome (#378).
 - **Estimate:** 40–80 h. Doc: [web.md](web.md).
+
+## G21. Mobile
+
+- **Missing:** this fork targets phones and tablets. The touch shell (top bar, Media / Edit / Export
+  tabs, contextual toolbar, sheets, command menu) and the Android app crate exist; touch timeline
+  gestures, device storage (Storage Access Framework), audio output, MediaCodec decode, export as a
+  foreground service, release signing and iOS do not.
+- **Estimate:** 260–460 h (sum of the phase estimates). Plan, checklist and percentage:
+  [mobile-roadmap.md](mobile-roadmap.md); design: [mobile-ux.md](mobile-ux.md); build: [mobile.md](mobile.md).
 
 ## Revision history
 

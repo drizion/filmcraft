@@ -16,9 +16,14 @@
 //!   lists, against a reference list (default: the local `plan/premiere/<area>.json`), presence and
 //!   placement reported separately (`parity.rs`, docs/gaps.md G7).
 //! - `ico <out.ico> <in.png>…`: pack PNGs into a Windows `.ico` (used by `packaging/icons.sh`).
+//! - `android <doctor|check|build|install|run|logs> [--debug] [--emulator]`: build the Android APK
+//!   with cargo-apk and install it with adb (docs/mobile.md).
+//! - `mobile [--write|--check]`: progress of the mobile port from `docs/mobile-roadmap.md`.
 //! - `ci`: fmt check, clippy -D warnings, tests, layers, assets, wasm.
 
+mod android;
 mod ico;
+mod mobile;
 mod parity;
 mod version;
 
@@ -87,6 +92,7 @@ const LAYERS: &[(&str, u8)] = &[
     ("filmcraft", 6),
     ("cli", 6),
     ("web", 6),
+    ("android", 6),
 ];
 
 /// L0 crates that are not codecs/containers (no `bitstream`-only restriction).
@@ -502,12 +508,17 @@ fn main() -> ExitCode {
             let rest: Vec<String> = std::env::args().skip(2).collect();
             parity::run(&root(), &rest.iter().map(String::as_str).collect::<Vec<_>>())
         }
+        "android" => android::main(&root(), &std::env::args().skip(2).collect::<Vec<_>>()),
+        "mobile" => {
+            let rest: Vec<String> = std::env::args().skip(2).collect();
+            mobile::run(&root(), &rest.iter().map(String::as_str).collect::<Vec<_>>())
+        }
         "ico" => {
             let rest: Vec<String> = std::env::args().skip(2).collect();
             ico::run(&rest.iter().map(String::as_str).collect::<Vec<_>>())
         }
         _ => Err(
-            "usage: cargo xtask <layers|assets|wasm|web [--dev] [--serve PORT]|fixtures [crate…]|parity [--area menus|effects|transitions] [--reference FILE] [--out FILE] [--min PERCENT]|ico OUT IN…|version [set X.Y.Z]|ci|bench [args]|bench-playback [args]>"
+            "usage: cargo xtask <layers|assets|wasm|web [--dev] [--serve PORT]|fixtures [crate…]|parity [--area menus|effects|transitions] [--reference FILE] [--out FILE] [--min PERCENT]|android <doctor|check|build|install|run|logs> [--debug] [--emulator]|mobile [--write|--check]|ico OUT IN…|version [set X.Y.Z]|ci|bench [args]|bench-playback [args]>"
                 .into(),
         ),
     };

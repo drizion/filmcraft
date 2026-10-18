@@ -241,6 +241,7 @@ The trailer and the grades in these screenshots were built exactly this way, by 
 ## Everywhere
 
 - **Native** on macOS, Windows and Linux, with a native macOS menu bar.
+- **Mobile (this fork):** the same engine with a touch UI for Android, iOS later: [docs/mobile.md](docs/mobile.md) (build and install an APK), [docs/mobile-ux.md](docs/mobile-ux.md) (screens and touch UX), [docs/mobile-roadmap.md](docs/mobile-roadmap.md) (checklist and progress).
 - **The web:** the same engine and UI run in the browser via WebAssembly (`apps/filmcraft-web`, see [docs/web.md](docs/web.md)); every release ships it as `filmcraft-web-<version>.zip`.
 - **Swappable UI.** The interface is one crate (`ui-egui`) over the engine, so a different front end can replace it without touching editing logic.
 

@@ -33,6 +33,7 @@ cargo run --release -p filmcraft -- a.mp4 b.wav       # import media (or open a 
 cargo run --release -p filmcraft-cli -- commands      # list engine commands
 cargo run --release -p filmcraft-cli -- render --demo --seconds 3 --out frame.png
 cargo run --release -p filmcraft-cli -- mcp --demo    # headless MCP server on stdio
+cargo xtask android build                            # the Android APK (docs/mobile.md); `cargo xtask mobile` prints mobile progress
 cargo xtask web --serve 8765                          # the web app on http://127.0.0.1:8765/ (docs/web.md)
 ```
 

@@ -1,0 +1,8 @@
+asset:        ic_launcher.png
+title:        FilmCraft Android launcher icon, xxxhdpi (192 px)
+author:       Brandon Thomas (FilmCraft owner), for the FilmCraft project
+source:       original work (drawn by the owner in ArtCraft, then vectorised)
+license:      MIT OR Apache-2.0
+license-file: assets/app-icon/LICENSE.txt
+added:        2026-10-18 by Claude (agent) for the FilmCraft mobile fork
+notes:        Downscaled from assets/app-icon/filmcraft-1024.png (Lanczos) to 192 px for the xxxhdpi density bucket.
