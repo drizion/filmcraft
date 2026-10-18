@@ -133,6 +133,21 @@ pub fn handle(app: &mut FilmcraftApp, ctx: &egui::Context, req: &ControlRequest)
                     Err(e) => return err(format!("bad `tts`: {e}")),
                 }
             }
+            // Touch shell state (sheet, menu search, …), merged into the current one
+            if let Some(patch) = p.get("mobile") {
+                let mut cur = serde_json::to_value(&app.ui.mobile).unwrap_or_default();
+                merge(&mut cur, patch);
+                match serde_json::from_value(cur) {
+                    Ok(m) => app.ui.mobile = m,
+                    Err(e) => return err(format!("bad `mobile`: {e}")),
+                }
+            }
+            if let Some(l) = s("layout") {
+                match serde_json::from_value::<crate::mobile::LayoutMode>(json!(l)) {
+                    Ok(l) => app.ui.layout = l,
+                    Err(_) => return err(format!("unknown layout `{l}` (auto, desktop or touch)")),
+                }
+            }
             if let Some(t) = s("tool") {
                 match Tool::from_name(t) {
                     Some(t) => app.ui.tool = t,

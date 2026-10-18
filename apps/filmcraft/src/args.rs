@@ -21,6 +21,9 @@ Options:
   --graphics <mode>  start with this graphics mode and keep it: default,
                      dx12 (Windows), software (Windows, Linux);
                      `--graphics default` undoes an automatic fallback
+  --touch            use the phone/tablet touch layout (docs/mobile-ux.md)
+  --window-size <WxH>  open the window with this inner size in points, for
+                     example 393x852 to preview a phone
   --version          print the version and exit
   -h, --help         print this help and exit
 ";
@@ -47,6 +50,10 @@ pub struct Launch {
     pub data_dir: Option<std::path::PathBuf>,
     /// `--graphics <mode>`: start with this graphics mode and keep it (see `graphics.rs`).
     pub graphics: Option<crate::graphics::Mode>,
+    /// `--touch`: the touch layout (the Android shell) on the desktop, to preview it.
+    pub touch: bool,
+    /// `--window-size WxH`: the inner size of the window, in points.
+    pub window_size: Option<[f32; 2]>,
 }
 
 /// Parse the arguments after the program name. `env_control_port` is the value of
@@ -70,6 +77,8 @@ pub fn parse(env_control_port: Option<String>, args: impl IntoIterator<Item = Os
         recover: None,
         data_dir: None,
         graphics: None,
+        touch: false,
+        window_size: None,
     };
     let (mut help, mut version) = (false, false);
     let mut args = args.into_iter();
@@ -85,6 +94,11 @@ pub fn parse(env_control_port: Option<String>, args: impl IntoIterator<Item = Os
             }
             "--demo" => (l.demo, l.startup_flag) = (true, true),
             "--control-input-only" => l.control_input_only = true,
+            "--touch" => l.touch = true,
+            "--window-size" => {
+                let size = args.next().ok_or("--window-size needs a size like 393x852")?;
+                l.window_size = Some(window_size(&size.to_string_lossy())?);
+            }
             "--empty" => (l.demo, l.startup_flag) = (false, true),
             "--recover" => l.recover = Some(true),
             "--no-recover" => l.recover = Some(false),
@@ -138,6 +152,18 @@ pub fn project_and_media(files: &[String]) -> (Option<String>, Vec<String>) {
     let project = files.iter().find(|f| is_project(f)).map(|f| absolute(f));
     let media = files.iter().filter(|f| !is_project(f)).map(|f| absolute(f)).collect();
     (project, media)
+}
+
+/// A `--window-size` value: `WxH` in points, each between 200 and 8000 (a hostile size would ask
+/// the window system for an unusable window).
+fn window_size(text: &str) -> Result<[f32; 2], String> {
+    let bad = || format!("--window-size needs a size like 393x852, got `{text}`");
+    let (w, h) = text.split_once(['x', 'X']).ok_or_else(bad)?;
+    let (w, h): (f32, f32) = (w.trim().parse().map_err(|_| bad())?, h.trim().parse().map_err(|_| bad())?);
+    if !(200.0..=8000.0).contains(&w) || !(200.0..=8000.0).contains(&h) {
+        return Err(bad());
+    }
+    Ok([w, h])
 }
 
 /// A `--graphics` value: one of this platform's modes.
@@ -222,6 +248,18 @@ mod tests {
     }
 
     #[test]
+    fn touch_and_window_size_preview_a_phone() {
+        let l = launch(&["--touch", "--window-size", "393x852"]);
+        assert!(l.touch);
+        assert_eq!(l.window_size, Some([393.0, 852.0]));
+        assert!(!launch(&[]).touch);
+        for bad in ["393", "axb", "10x10", "99999x852", "393x", "x852", "NaNx852"] {
+            assert!(parse_args(&["--window-size", bad]).is_err(), "{bad}");
+        }
+        assert!(parse_args(&["--window-size"]).is_err());
+    }
+
+    #[test]
     fn known_options_and_files_parse_as_before() {
         let none = launch(&[]);
         assert_eq!(
@@ -234,7 +272,9 @@ mod tests {
                 startup_flag: false,
                 recover: None,
                 data_dir: None,
-                graphics: None
+                graphics: None,
+                touch: false,
+                window_size: None
             }
         );
         let l = launch(&["--control", "9876", "--empty", "--no-recover", "--data-dir", "/tmp/fc", "cut.fcproj", "a.mp4"]);

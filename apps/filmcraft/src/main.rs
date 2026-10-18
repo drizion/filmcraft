@@ -131,7 +131,7 @@ fn main() -> eframe::Result {
         register_gpu_frame_renderer();
     }
     let started = loop {
-        let mut options = native_options(launch.control_port.is_some());
+        let mut options = native_options(launch.control_port.is_some(), launch.window_size);
         // Before eframe creates the wgpu instance (e.g. no OpenGL on Windows, see graphics.rs).
         graphics::apply(&mut options, graphics.mode(), backend_override);
         let app_created = Arc::new(AtomicBool::new(false));
@@ -164,12 +164,13 @@ fn main() -> eframe::Result {
 }
 
 /// The main window's options; built for each start attempt (they hold a one-shot hook).
-fn native_options(agent: bool) -> eframe::NativeOptions {
+fn native_options(agent: bool, window_size: Option<[f32; 2]>) -> eframe::NativeOptions {
     eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title("FilmCraft")
-            .with_inner_size([1600.0, 980.0])
-            .with_min_inner_size([900.0, 560.0])
+            .with_inner_size(window_size.unwrap_or([1600.0, 980.0]))
+            // a phone-sized preview must not be forced up to the desktop minimum
+            .with_min_inner_size(if window_size.is_some() { [200.0, 200.0] } else { [900.0, 560.0] })
             .with_drag_and_drop(true)
             .with_fullsize_content_view(true)
             .with_titlebar_shown(false)
@@ -187,7 +188,7 @@ fn native_options(agent: bool) -> eframe::NativeOptions {
 /// Creates the app once eframe has its window and graphics device; sets `created` when it runs,
 /// and confirms the graphics mode once two frames have painted.
 fn app_creator(launch: Launch, graphics: graphics::GraphicsStart, created: Arc<AtomicBool>) -> eframe::AppCreator<'static> {
-    let Launch { control_port, control_input_only, files, demo, startup_flag, recover, data_dir, graphics: _ } = launch;
+    let Launch { control_port, control_input_only, files, demo, startup_flag, recover, data_dir, graphics: _, touch, window_size: _ } = launch;
     Box::new(move |cc| {
         created.store(true, Ordering::Relaxed);
         // A fallback graphics mode says so in the window, with a button back to the default.
@@ -252,6 +253,9 @@ fn app_creator(launch: Launch, graphics: graphics::GraphicsStart, created: Arc<A
             app.dialog = None;
         }
         app.integrated_titlebar = cfg!(target_os = "macos");
+        if touch {
+            app.ui.layout = filmcraft_ui_egui::mobile::LayoutMode::Touch;
+        }
         if let Some(rs) = cc.wgpu_render_state.clone()
             && std::env::var_os("FILMCRAFT_CPU_COMPOSITE").is_none()
         {

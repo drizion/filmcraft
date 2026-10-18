@@ -46,6 +46,7 @@ pub mod i18n;
 pub mod icons;
 pub mod links;
 pub mod menus;
+pub mod mobile;
 pub mod native_dialogs;
 pub mod panels;
 pub mod perf;
@@ -1777,6 +1778,13 @@ impl FilmcraftApp {
         let t = self.tokens;
         let full = ui.max_rect();
         ui.painter().rect_filled(full, 0.0, t.app_bg);
+        if mobile::uses_touch_shell(self.ui.layout, full.width()) {
+            mobile::show(self, ui, full);
+            panels::dialogs::show(self, &ctx);
+            self.watch_jobs(&ctx);
+            self.pending_timeline_drop = None;
+            return;
+        }
         let header_h = if self.ui.show_header { 38.0 } else { 0.0 };
         let header = egui::Rect::from_min_size(full.min, egui::vec2(full.width(), header_h));
         if self.ui.show_header {
